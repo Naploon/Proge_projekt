@@ -2,6 +2,8 @@ import pygame #toob sisse pygame mooduli
 import random #toob sisse random'i mooduli
 import sys 
 
+#defineerime mängu funktsioonid
+
 def maapinna_liikumine(): #paneb maapinna liikuma vasakule
     ekraan.blit(maapind,(maapinna_x ,900))
     ekraan.blit(maapind,(maapinna_x + 576 ,900))
@@ -29,7 +31,7 @@ def aseta_torud(torud): #asetab torud ekraanile nii üles kui ka alla
 def kokkupõrge(torud): #kontrollib, kas lind on põrganud kokku toru, lae või põrandaga
     for el in torud:
         if lind_rect.colliderect(el):
-            #surmaheli peaks siia sisestama
+            surma_heli.play()
             return False
         
     if lind_rect.top <= -100 or lind_rect.bottom >= 900:
@@ -37,6 +39,41 @@ def kokkupõrge(torud): #kontrollib, kas lind on põrganud kokku toru, lae või 
     
     return True
 
+#tulemuse esitamine
+def tulemusnäidik(hetk_mängus):
+    if hetk_mängus == "mängus":
+        tulemuspilt = mängu_font.render(f'Score: {int(tulemus)}', True,(255, 255, 255))
+        tulemus_rect = tulemuspilt.get_rect(center = (288, 100))
+        ekraan.blit(tulemuspilt, tulemus_rect)
+    if hetk_mängus == "mäng_läbi":
+        tulemuspilt = mängu_font.render(f'Score: {int(tulemus)}', True,(255, 255, 255))
+        tulemus_rect = tulemuspilt.get_rect(center = (288, 100))
+        ekraan.blit(tulemuspilt, tulemus_rect)
+        
+        #parima tulemuse esitamine
+        parim_tulemuspilt = mängu_font.render(f'High score: {int(parim_tulemus)}', True,(255, 255, 255))
+        parim_tulemus_rect = parim_tulemuspilt.get_rect(center = (288, 850))
+        ekraan.blit(parim_tulemuspilt, parim_tulemus_rect)
+
+#hoiab meeles parimat tulemust
+def tulemused(tulemus, parim_tulemus):
+    if tulemus > parim_tulemus:
+        parim_tulemus = tulemus
+    return parim_tulemus
+
+#linnu n-ö kallutamine animatsiooni jaoks
+def keera_lindu(lind):
+    keeratud_lind = pygame.transform.rotozoom(lind, -linnu_liikumine * 3, 1)
+    return keeratud_lind
+
+#linnu tiibade liigutamine
+def linnu_animatsioon():
+    animeeritud_lind = lind_kaadrid[lind_index]
+    animeeritud_lind_rect = animeeritud_lind.get_rect(center = (100, lind_rect.centery))
+    return animeeritud_lind, animeeritud_lind_rect
+
+
+pygame.mixer.pre_init(frequency = 44100, size = 16, channels = 1, buffer = 512) #mängib heli normaalselt       
 pygame.init() #alustab pygame'i moodulit
 ekraan = pygame.display.set_mode((576, 1024)) #loob mängu jaoks akna
 aeg = pygame.time.Clock()
@@ -49,10 +86,20 @@ maapind = pygame.image.load("assets/maapind.png").convert() #leiab maapinnafaili
 maapind = pygame.transform.scale2x(maapind) #teeb maapinna suuremaks
 maapinna_x = 0
 
-#linnu pilt
-linnu_pilt = pygame.image.load("assets/lind_tiib_keskel.png").convert_alpha()
-linnu_pilt = pygame.transform.scale2x(linnu_pilt)
-lind_rect = linnu_pilt.get_rect(center = (100, 512))
+
+#laeb linnu pildifailid sisse, animatsiooni jaoks
+lind_tiib_all = pygame.image.load("assets/lind_tiib_all.png").convert_alpha()
+lind_tiib_all = pygame.transform.scale2x(lind_tiib_all)
+lind_tiib_keskel = pygame.image.load("assets/lind_tiib_keskel.png").convert_alpha()
+lind_tiib_keskel = pygame.transform.scale2x(lind_tiib_keskel)
+lind_tiib_üleval = pygame.image.load("assets/lind_tiib_üleval.png").convert_alpha()
+lind_tiib_üleval = pygame.transform.scale2x(lind_tiib_üleval)
+lind_index = 0
+lind_kaadrid = [lind_tiib_all, lind_tiib_keskel, lind_tiib_üleval] #järjend linnu olekutega
+lind_hetkes = lind_kaadrid[lind_index]
+lind_rect = lind_hetkes.get_rect(center = (100, 512))
+linnulend = pygame.USEREVENT + 1
+pygame.time.set_timer(linnulend, 200)
 
 #laeb sisse torude pildifailid
 toru = pygame.image.load("assets/toru_roheline.png").convert()
@@ -63,14 +110,24 @@ toru_kõrgus = [400, 600, 800]
 toru_järjend = []
 
 #pilt kui mäng saab läbi
-mäng_läbi_pilt = pygame.image.load("assets/sõnum_lõpp.png").convert_alpha()
+mäng_läbi_pilt = pygame.image.load("assets/sõnum_algus.png").convert_alpha()
 mäng_läbi_pilt = pygame.transform.scale2x(mäng_läbi_pilt)
 mäng_läbi_rect = mäng_läbi_pilt.get_rect(center = (288, 512))
 
 #mängu muutujad
 gravitatsioon = 0.25
 linnu_liikumine = 0
+tulemus = 0
+parim_tulemus = 0
 mängu_staatus = True
+mängu_font = pygame.font.Font("font/04B_19.ttf", 40)
+
+#helid
+tiiva_heli = pygame.mixer.Sound('audio/sfx_wing.wav')
+surma_heli = pygame.mixer.Sound('audio/sfx_hit.wav')
+skoori_heli = pygame.mixer.Sound('audio/sfx_point.wav')
+skoori_heli_arvestaja = 100
+
 
 #mängu loop
 while True:
@@ -82,26 +139,47 @@ while True:
             if event.key == pygame.K_SPACE and mängu_staatus:
                 linnu_liikumine = 0
                 linnu_liikumine -= 12
+                tiiva_heli.play()
             if event.key == pygame.K_SPACE and mängu_staatus == False:
                 mängu_staatus = True
                 toru_järjend.clear()
                 lind_rect.center = (100,512)
                 linnu_liikumine = 0
+                tulemus = 0
         if event.type == tekita_toru:
             toru_järjend.extend(loo_toru())
+        if event.type == linnulend:
+            if lind_index < 2:
+                lind_index += 1
+            else:
+                lind_index = 0
+            
+            linnu_pilt, lind_rect = linnu_animatsioon()
     
     ekraan.blit(taust,(0, 0)) #lisab taustapildi ekraanile kindlale kohale
     if mängu_staatus:
         #linnu liikumine
         linnu_liikumine += gravitatsioon
+        keeratud_lind = keera_lindu(lind_hetkes)
         lind_rect.centery += linnu_liikumine
-        ekraan.blit(linnu_pilt, lind_rect)
+        ekraan.blit(keeratud_lind, lind_rect)
         mängu_staatus = kokkupõrge(toru_järjend)
         #torud ekraanile
         toru_järjend = torude_liigutamine(toru_järjend)
         aseta_torud(toru_järjend)
+        
+        #skoor
+        tulemus += 0.01
+        tulemusnäidik("mängus")
+        skoori_heli_arvestaja -= 1
+        if skoori_heli_arvestaja <= 0:
+            skoori_heli.play()
+            skoori_heli_arvestaja = 100
     else:
         ekraan.blit(mäng_läbi_pilt, mäng_läbi_rect)
+        parim_tulemus = tulemused(tulemus, parim_tulemus)
+        tulemusnäidik("mäng_läbi")
+        
         
 
     maapinna_x -= 1 #muudab maapinna pildifaili x-koordinaati
@@ -110,5 +188,6 @@ while True:
         maapinna_x = 0
     pygame.display.update()
     aeg.tick(120)
+
 
 

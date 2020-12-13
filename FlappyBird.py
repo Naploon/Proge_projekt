@@ -1,33 +1,33 @@
-import pygame #toob siise pygame mooduli
-import random #toob siise random'i mooduli
+import pygame #toob sisse pygame mooduli
+import random #toob sisse random'i mooduli
 import sys 
 
-def tulemusnäidik(hetk_mängus): #tulemuse esitamine
+def tulemusnäidik(hetk_mängus): #tulemuse esitamine, lõppversiooni
     if hetk_mängus == "mängus":
-        tulemuspilt = game.font.render(str(int(tulemus)), True,(255, 255, 255))
+        tulemuspilt = game_font.render(str(int(tulemus)), True,(255, 255, 255))
         tulemus_rect = tulemuspilt.get_rect(center = (288, 100))
         ekraan.blit(tulemuspilt, tulemus_rect)
     if hetk_mängus == "mäng läbi":
         tulemuspilt = game_font.render(f"Tulemus: {int(tulemus)}", True,(255, 255, 255))
-        tulemus_rect = tulempilt.get_rect(center = (288, 100))
+        tulemus_rect = tulemuspilt.get_rect(center = (288, 100))
         ekraan.blit(tulemuspilt, tulemus_rect)
         
         #parima tulemuse esitamine
         parim_tulemuspilt = game_font.render(f"Parim tulemus: {int(parim_tulemus)}", True,(255, 255, 255))
-        parim_tulemus_rect = tulempilt.get_rect(center = (288, 850))
+        parim_tulemus_rect = tulemuspilt.get_rect(center = (288, 850))
         ekraan.blit(parim_tulemuspilt, parim_tulemus_rect)
 
-def tulemused(tulemus, parim_tulemus): #hoiab meeles parimat tulemust
+def tulemused(tulemus, parim_tulemus): #hoiab meeles parimat tulemust, lõppversiooni
     if tulemus > parim_tulemus:
         parim_tulemus = tulemus
     return parim_tulemus
 
 
-def keera_lindu(lind): #linnu kallutamine animatsiooni jaoks
+def keera_lindu(lind): #linnu kallutamine animatsiooni jaoks, lõppversiooni
     keeratud_lind = pygame.transform.rotozoom(lind, -linnu_liikumine * 3, 1)
     return keeratud_lind
 
-def linnu_animatsioon(): #linnu tiibade liigutamine
+def linnu_animatsioon(): #linnu tiibade liigutamine, lõppversiooni
     animeeritud_lind = lind_kaadrid[lind_index]
     animeeritud_lind_rect = animeeritud_lind.get_rect(center = (100, lind_rect.centery))
     return animeeritud_lind, animeeritud_lind_rect
@@ -39,7 +39,7 @@ def loo_toru(): #loob suvalised torude kõrgused nii alla kui üles
     ülemine_toru = toru.get_rect(midbottom = (700, suvaline_positsioon - 300))
     return alumine_toru, ülemine_toru
 
-def torude_liigutamine(torud): #pole hetkel 100% kindel mida see teeb
+def torude_liigutamine(torud): #liigutab torud ekraani keskele, et n-ö pildilt maha ei sõidaks
     for el in torud:
         el.centerx -= 5
     return torud
@@ -80,16 +80,16 @@ def maapinna_liikumine(): #paneb maapinna liikuma vasakule
 
 
 
-pygame.mixer.pre_init(frequency = 44100, size = 16, channels = 1, buffer = 512)
+pygame.mixer.pre_init(frequency = 44100, size = 16, channels = 1, buffer = 512) #lõppversiooni
 pygame.init() #alustab pygame'i moodulit
 ekraan = pygame.display.set_mode((576, 1024)) #loob mängu jaoks akna
 aeg = pygame.time.Clock()
 
 
 
-taust = pygame.image.load("assets/taust_päev.png").convert() #leiab taustafaili ja converdim selle pygame paremini loetamaks
+taust = pygame.image.load("assets/taust_päev.png").convert() #leiab taustafaili ja converdib selle pygame paremini loetavaks
 taust = pygame.transform.scale2x(taust) #teeb tausta suuremaks
-maapind = pygame.image.load("assets/maapind.png").convert() #leiab maapinnafaili ja converdim selle pygame paremini loetamaks
+maapind = pygame.image.load("assets/maapind.png").convert() #leiab maapinnafaili ja converdib selle pygame paremini loetavaks
 maapind = pygame.transform.scale2x(maapind) #teeb maapinna suuremaks
 maapinna_x = 0
 
@@ -101,12 +101,12 @@ mängu_staatus = True
 #mängu_font = pygame.font.Font("04B_19.ttf", 40)
 
 
-#laeb linnu pildifailid sisse
-lind_tiib_all = pygame.image.load("assets/lind_tiib_all.png").convert()
+#laeb linnu pildifailid sisse, animatsioon lõppversiooni
+lind_tiib_all = pygame.image.load("assets/lind_tiib_all.png").convert_alpha()
 lind_tiib_all = pygame.transform.scale2x(lind_tiib_all)
-lind_tiib_keskel = pygame.image.load("assets/lind_tiib_keskel.png").convert()
+lind_tiib_keskel = pygame.image.load("assets/lind_tiib_keskel.png").convert_alpha()
 lind_tiib_keskel = pygame.transform.scale2x(lind_tiib_keskel)
-lind_tiib_üleval = pygame.image.load("assets/lind_tiib_üleval.png").convert()
+lind_tiib_üleval = pygame.image.load("assets/lind_tiib_üleval.png").convert_alpha()
 lind_tiib_üleval = pygame.transform.scale2x(lind_tiib_üleval)
 lind_index = 0
 lind_kaadrid = [lind_tiib_all, lind_tiib_keskel, lind_tiib_üleval] #järjend linnu olekutega
@@ -129,7 +129,7 @@ toru_järjend = []
 
 
 #pilt kui mäng saab läbi
-mäng_läbi_pilt = pygame.image.load("assets/sõnum_lõpp.png")
+mäng_läbi_pilt = pygame.image.load("assets/sõnum_lõpp.png").convert_alpha()
 mäng_läbi_pilt = pygame.transform.scale2x(mäng_läbi_pilt)
 mäng_läbi_rect = mäng_läbi_pilt.get_rect(center = (288, 512))
 
