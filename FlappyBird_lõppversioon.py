@@ -61,6 +61,17 @@ def tulemused(tulemus, parim_tulemus):
         parim_tulemus = tulemus
     return parim_tulemus
 
+def tulemus_torudelt():
+    global tulemus, võib_lugeda
+    if toru_järjend:
+        for toru in toru_järjend:
+            if 95 < toru.centerx < 105 and võib_lugeda:
+                tulemus += 1
+                skoori_heli.play()
+                võib_lugeda = False
+            if toru.centerx < 0:
+                võib_lugeda = True
+
 #linnu n-ö kallutamine animatsiooni jaoks
 def keera_lindu(lind):
     keeratud_lind = pygame.transform.rotozoom(lind, -linnu_liikumine * 3, 1)
@@ -115,11 +126,12 @@ mäng_läbi_pilt = pygame.transform.scale2x(mäng_läbi_pilt)
 mäng_läbi_rect = mäng_läbi_pilt.get_rect(center = (288, 512))
 
 #mängu muutujad
-gravitatsioon = 0.25
+gravitatsioon = 0.4
 linnu_liikumine = 0
 tulemus = 0
 parim_tulemus = 0
 mängu_staatus = True
+võib_lugeda = True
 mängu_font = pygame.font.Font("font/04B_19.ttf", 40)
 
 #helid
@@ -169,12 +181,9 @@ while True:
         aseta_torud(toru_järjend)
         
         #skoor
-        tulemus += 0.01
+        tulemus_torudelt()
         tulemusnäidik("mängus")
-        skoori_heli_arvestaja -= 1
-        if skoori_heli_arvestaja <= 0:
-            skoori_heli.play()
-            skoori_heli_arvestaja = 100
+        
     else:
         ekraan.blit(mäng_läbi_pilt, mäng_läbi_rect)
         parim_tulemus = tulemused(tulemus, parim_tulemus)
@@ -188,6 +197,3 @@ while True:
         maapinna_x = 0
     pygame.display.update()
     aeg.tick(120)
-
-
-
